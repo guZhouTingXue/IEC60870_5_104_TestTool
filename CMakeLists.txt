@@ -19,6 +19,7 @@ qt_add_qml_module(appIEC60870_5_104_TestTool
         Main.qml
         QML_FILES APDUTable.qml
         SOURCES apdumodel.h apdumodel.cpp
+        QML_FILES MainWindowMenuBar.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

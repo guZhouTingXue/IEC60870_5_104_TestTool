@@ -5,11 +5,11 @@ ApplicationWindow {
     width: 1000
     height: 600
     visible: true
-    title: qsTr("Hello World")
+    title: qsTr("IEC 60870-5-104 Test Tool")
 
     APDUTable {
         anchors.fill: parent
     }
 
-
+    menuBar: MainWindowMenuBar {}
 }
