@@ -34,8 +34,15 @@ set_target_properties(appIEC60870_5_104_TestTool PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
+target_include_directories(appIEC60870_5_104_TestTool
+    PRIVATE ${PROJECT_SOURCE_DIR}/includes/inc/api
+    ${PROJECT_SOURCE_DIR}/includes/hal/inc
+
+)
+
 target_link_libraries(appIEC60870_5_104_TestTool
     PRIVATE Qt6::Quick
+    ${PROJECT_SOURCE_DIR}/lib/lib60870.dll
 )
 
 include(GNUInstallDirs)
@@ -44,3 +51,5 @@ install(TARGETS appIEC60870_5_104_TestTool
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+
