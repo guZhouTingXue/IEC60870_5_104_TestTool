@@ -12,4 +12,5 @@ ApplicationWindow {
     }
 
     menuBar: MainWindowMenuBar {}
+    header: Connection {}
 }
