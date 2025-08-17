@@ -12,5 +12,8 @@ ApplicationWindow {
     }
 
     menuBar: MainWindowMenuBar {}
-    header: Connection {}
+    header: Connection {
+        ip: "127.000.000.001"
+        port: 2404
+    }
 }
