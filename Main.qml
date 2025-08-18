@@ -16,4 +16,7 @@ ApplicationWindow {
         ip: "127.000.000.001"
         port: 2404
     }
+    footer: ConnectionStatus {
+        ip: "127.000.000.001"
+    }
 }
