@@ -22,6 +22,7 @@ qt_add_qml_module(appIEC60870_5_104_TestTool
         QML_FILES MainWindowMenuBar.qml
         QML_FILES Connection.qml
         QML_FILES ConnectionStatus.qml
+        SOURCES cs104connection.h cs104connection.cpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

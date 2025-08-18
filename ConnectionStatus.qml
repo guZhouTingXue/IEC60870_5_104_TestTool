@@ -18,7 +18,7 @@ Rectangle {
         CONNECTED,
         FAILED
     }
-    property int cntState: ConnectionStatus.FAILED
+    property int cntState: ConnectionStatus.IDLE
     property var statusText: ["Ready", "Connecting to ", "Connected to ", "Connected to "]
     RowLayout
     {
