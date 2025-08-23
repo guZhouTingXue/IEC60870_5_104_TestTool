@@ -9,23 +9,24 @@ connectionHandler (void* parameter, CS104_Connection connection, CS104_Connectio
     CS104Connection *con = static_cast<CS104Connection*>(parameter);
     if(con)
     {
+        con->setConnectionEvent(event);
         emit con->connectionEvent(event);
     }
     switch (event) {
     case CS104_CONNECTION_OPENED:
-        printf("Connection established\n");
+        qDebug("Connection established\n");
         break;
     case CS104_CONNECTION_CLOSED:
-        printf("Connection closed\n");
+        qDebug("Connection closed\n");
         break;
     case CS104_CONNECTION_STARTDT_CON_RECEIVED:
-        printf("Received STARTDT_CON\n");
+        qDebug("Received STARTDT_CON\n");
         break;
     case CS104_CONNECTION_STOPDT_CON_RECEIVED:
-        printf("Received STOPDT_CON\n");
+        qDebug("Received STOPDT_CON\n");
         break;
     case CS104_CONNECTION_FAILED:
-        printf("Connection failed\n");
+        qDebug("Connection failed\n");
         break;
     }
 }
@@ -49,7 +50,35 @@ CS104Connection::CS104Connection(QObject *parent)
 
 }
 
+CS104Connection::~CS104Connection()
+{
+     if(m_cntEvent != CS104_CONNECTION_FAILED || m_cntEvent != CS104_CONNECTION_CLOSED)
+     {
+         CS104_Connection_close(m_con);
+         CS104_Connection_destroy(m_con);
+     }
+}
+
 void CS104Connection::connectToServer()
 {
-    CS104_Connection_connect(m_con);
+    CS104_Connection_connectAsync(m_con);
+}
+
+void CS104Connection::disconnectToServer()
+{
+    CS104_Connection_close(m_con);
+}
+
+void CS104Connection::sendStartDT()
+{
+    CS104_Connection_sendStartDT(m_con);
+}
+
+void CS104Connection::setConnectionEvent(CS104_ConnectionEvent event)
+{
+    m_cntEvent = event;
+    if(event == CS104_CONNECTION_OPENED)
+    {
+        sendStartDT();
+    }
 }

@@ -1,7 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-
-//#include "cs104connection.h"
+#include <QThread>
+#include "cs104connection.h"
 
 int main(int argc, char *argv[])
 {
@@ -9,7 +9,8 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     //qmlRegisterType<CS104Connection>("ming.connection", 1, 0, "CS104Connection");
-
+    CS104Connection *cs104 = new CS104Connection(&app);
+    engine.setInitialProperties({{ "cs104", QVariant::fromValue(cs104) }});
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
