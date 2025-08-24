@@ -23,7 +23,7 @@ public slots:
 
 public:
     void setConnectionEvent(CS104_ConnectionEvent event);
-
+    CS104_Connection getConnection() const { return m_con; }
 signals:
     void connectionEvent(int);
 
