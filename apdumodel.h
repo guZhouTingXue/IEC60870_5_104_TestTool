@@ -4,6 +4,8 @@
 #include <QAbstractTableModel>
 #include <qqml.h>
 
+#include "cs101apdu.h"
+
 class APDUModel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -25,7 +27,13 @@ public:
     // QHash<int, QByteArray> roleNames() const override {
     //     return { {Qt::DisplayRole, "display"}};
     // }
+
+public slots:
+    void recvAPDU(APDU *apdu);
 private:
+    QList<APDU *> m_apduList;
+    QList<size_t> m_beginRow; //记录apud的起始行
+
 };
 
 #endif // APDUMODEL_H

@@ -2,6 +2,56 @@
 
 #include <QDebug>
 
+static void
+rawMessageHandler (void* parameter, uint8_t* msg, int msgSize, bool sent)
+{
+    qDebug() << "msgSize:" << msgSize;
+    if (sent)
+        qDebug("SEND: ");
+    else
+        qDebug("RCVD: ");
+
+    CS104Connection *con = static_cast<CS104Connection*>(parameter);
+    if(!con)
+    {
+        qDebug() << __func__ << "error: static_cast<CS104Connection*>(parameter)";
+        return ;
+    }
+
+    bool isSFormatFrame= false; //是否为s帧  S format frame
+    if( (msgSize == 6)
+        && (msg[0] == 0x68)
+        && (msg[1] == 0x04)
+        && (msg[2] == 0x01) )
+    {
+        APCI *apci = new APCI_S(msg);
+        APDU *apdu = new APDU(apci);
+        apdu->setSent(sent);
+        con->appendAPDU(apdu);
+        emit con->recvAPDU(apdu);
+    }
+    else if(  (msgSize == 6)
+               && (msg[0] == 0x68)
+               && (msg[1] == 0x04)
+               && ( (msg[2] & 0x03) == 0x03))
+    {
+        APCI *apci = new APCI_U(msg);
+        APDU *apdu = new APDU(apci);
+        apdu->setSent(sent);
+        con->appendAPDU(apdu);
+        emit con->recvAPDU(apdu);
+    }
+
+    // QString msgStr;
+    // int i;
+    // for (i = 0; i < msgSize; i++) {
+    //     msgStr += " " + QString::number(msg[i], 16);
+    // }
+
+    //qDebug() << msgStr;
+}
+
+
 static bool
 asduReceivedHandler (void* parameter, int address, CS101_ASDU asdu)
 {
@@ -9,8 +59,6 @@ asduReceivedHandler (void* parameter, int address, CS101_ASDU asdu)
            TypeID_toString(CS101_ASDU_getTypeID(asdu)),
            CS101_ASDU_getTypeID(asdu),
            CS101_ASDU_getNumberOfElements(asdu));
-
-    qDebug() << "asdu payload:" << *CS101_ASDU_getPayload(asdu);
 
     CS104Connection *con = static_cast<CS104Connection*>(parameter);
     if(!con)
@@ -22,33 +70,67 @@ asduReceivedHandler (void* parameter, int address, CS101_ASDU asdu)
     auto applayerParameters= CS104_Connection_getAppLayerParameters(con->getConnection());
     int asduHeaderLength = 2 + applayerParameters->sizeOfCOT + applayerParameters->sizeOfCA;
     auto msg = CS101_ASDU_getPayload(asdu);
-    qDebug() << "msg:";
-    QString msgStr;
-    for (int j = 0; j < 10; j++) {
-        msgStr += " " + QString::number(*(msg - asduHeaderLength - 6 + j), 16).rightJustified(2, '0');
-    }
-    qDebug() << msgStr;
+    // qDebug() << "msg:";
+    // QString msgStr;
+    // for (int j = 0; j < 10; j++) {
+    //     msgStr += " " + QString::number(*(msg - asduHeaderLength - 6 + j), 16).rightJustified(2, '0');
+    // }
+    // qDebug() << msgStr;
+    auto buffer = msg - asduHeaderLength - 6;
+
+    APCI *apci = new APCI_I(buffer);
+    auto sq = CS101_ASDU_isSequence(asdu);
+    auto num = CS101_ASDU_getNumberOfElements(asdu);
+    ASDU::VSQ vsq(sq, num);
+    auto test = CS101_ASDU_isTest(asdu);
+    auto negative = CS101_ASDU_isNegative(asdu);
+    auto cot = CS101_ASDU_getCOT(asdu);
+    ASDU::COT m_cot(test, negative, cot);
+    auto typeID = CS101_ASDU_getTypeID(asdu);
+    auto ca = CS101_ASDU_getCA(asdu);
+    ASDU *m_asdu = new ASDU(typeID, vsq, m_cot);
+    m_asdu->setCA(ca);
 
     if (CS101_ASDU_getTypeID(asdu) == M_ME_NC_1) {
-
-        qDebug(" measured short values \n");
-
         int i;
+        auto number = CS101_ASDU_getNumberOfElements(asdu);
+        qDebug(" measured short values n:%d\n", number);
 
-        for (i = 0; i < CS101_ASDU_getNumberOfElements(asdu); i++) {
+        for (i = 0; i < number; i++) {
 
             MeasuredValueShort io =
                 (MeasuredValueShort) CS101_ASDU_getElement(asdu, i);
 
-            qDebug("    IOA: %i value: %f\n",
-                   InformationObject_getObjectAddress((InformationObject) io),
-                   MeasuredValueShort_getValue((MeasuredValueShort) io)
-                   );
-
+            auto ioa = InformationObject_getObjectAddress((InformationObject) io);
+            auto value = MeasuredValueShort_getValue((MeasuredValueShort) io);
+            qDebug("    IOA: %i value: %f\n", ioa, value );
+            InformationElement *ele = new InformationElement(ioa, value);
+            m_asdu->addInformationElement(ele);
             MeasuredValueShort_destroy(io);
         }
     }
+    else if(CS101_ASDU_getTypeID(asdu) == M_ME_NB_1)
+    {
+        int i;
+        auto number = CS101_ASDU_getNumberOfElements(asdu);
+        qDebug("scaled value  n:%d\n", number);
 
+        for (i = 0; i < number; i++) {
+
+            MeasuredValueScaled io =
+                (MeasuredValueScaled) CS101_ASDU_getElement(asdu, i);
+
+            auto ioa = InformationObject_getObjectAddress((InformationObject) io);
+            auto value = MeasuredValueScaled_getValue((MeasuredValueScaled) io);
+            qDebug("    IOA: %i value: %d\n", ioa, value );
+            InformationElement *ele = new InformationElement(ioa, value);
+            m_asdu->addInformationElement(ele);
+            MeasuredValueScaled_destroy(io);
+        }
+    }
+    APDU * apdu = new APDU(apci, m_asdu);
+    con->appendAPDU(apdu);
+    emit con->recvAPDU(apdu);
 
     return true;
 }
@@ -100,6 +182,7 @@ CS104Connection::CS104Connection(QObject *parent)
 
     CS104_Connection_setConnectionHandler(m_con, connectionHandler, this);
     CS104_Connection_setASDUReceivedHandler(m_con, asduReceivedHandler, this);
+    CS104_Connection_setRawMessageHandler(m_con, rawMessageHandler, this);
 
 }
 

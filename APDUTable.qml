@@ -11,6 +11,7 @@ Rectangle {
         syncView: tableView
 
     }
+    property alias model: tableView.model
 
     TableView {
         id: tableView
@@ -20,13 +21,13 @@ Rectangle {
         anchors.top: horizontalHeader.bottom
         anchors.bottom: parent.bottom
 
-        model: APDUModel{}
+        model: APDUModel{ }
 
         delegate: Rectangle {
             implicitWidth: 100
             implicitHeight: 50
             Text {
-                text: display
+                text: display !== "undefined" ? display : " "
             }
         }
     }

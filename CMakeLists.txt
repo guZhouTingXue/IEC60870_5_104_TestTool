@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(IEC60870_5_104_TestTool VERSION 0.1 LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Quick)
@@ -23,6 +24,7 @@ qt_add_qml_module(appIEC60870_5_104_TestTool
         QML_FILES Connection.qml
         QML_FILES ConnectionStatus.qml
         SOURCES cs104connection.h cs104connection.cpp
+        SOURCES cs101apdu.h cs101apdu.cpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

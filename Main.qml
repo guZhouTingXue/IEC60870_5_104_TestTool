@@ -11,6 +11,7 @@ ApplicationWindow {
     title: qsTr("IEC 60870-5-104 Test Tool")
 
     APDUTable {
+        id: apduTable
         anchors.fill: parent
     }
     required property CS104Connection cs104
@@ -35,6 +36,12 @@ ApplicationWindow {
 
         }
 
+    }
+    Connections {
+        target: root.cs104
+        function onRecvAPDU(apdu) {
+            apduTable.model.recvAPDU(apdu)
+        }
     }
 
 
