@@ -86,7 +86,8 @@ QVariant APDUModel::data(const QModelIndex &index, int role) const
             return index.row() + 1;
             break;
         case 1:
-            return apdu->time().toString("yyyy.MM.dd hh:mm:ss.zzz");
+            if(firstElement || !asdu)
+                return apdu->time().toString("yyyy.MM.dd hh:mm:ss.zzz");
             break;
         case 2:
             //U,S 短帧报文 和 I中的第一个信息元素显示 类型
